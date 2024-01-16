@@ -218,8 +218,33 @@ contract UniswapV3ETHToSHIBSwapAdvanced {
     // TODO: Implement fund rescue operations with security check
     // This function can be used by the owner to rescue funds from the contract (if needed).
     function rescueFunds(address tokenAddress) external onlyOwner {
-        // Fund rescue logic goes here
+        // Security check: Ensure that the specified token is not WETH or SHIB
+        require(
+            tokenAddress != WETH_ADDRESS && tokenAddress != SHIB_ADDRESS,
+            "Cannot rescue WETH or SHIB"
+        );
+
+        // Get the token balance of the contract
+        uint256 contractBalance = IERC20(tokenAddress).balanceOf(address(this));
+
+        // Ensure that there are funds to rescue
+        require(contractBalance > 0, "No funds to rescue");
+
+        // Transfer the funds to the owner
+        require(
+            IERC20(tokenAddress).transfer(owner, contractBalance),
+            "Fund rescue failed"
+        );
+
+        // Log the fund rescue operation
+        emit FundRescued(owner, tokenAddress, contractBalance);
     }
+
+    event FundRescued(
+        address indexed owner,
+        address indexed token,
+        uint256 amount
+    );
 
     // Function to receive ETH
     // This function allows the contract to receive ETH from users.
